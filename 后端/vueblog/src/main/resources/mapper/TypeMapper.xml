@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="world.lixiang.dao.TypeDao">
+    <insert id="addType" parameterType="Type" useGeneratedKeys="true" keyProperty="id">
+        insert into m_type values (#{id},#{name})
+    </insert>
+    <update id="updateType" parameterType="Type">
+        update m_type set name = #{name} where id = #{id}
+    </update>
+    <delete id="deleteType" parameterType="Integer">
+        delete from m_type where id = #{id}
+    </delete>
+    <select id="findPageType" resultType="Type">
+        select * from m_type limit #{page}, #{rows}
+    </select>
+    <select id="total" resultType="java.lang.Long">
+        select count(id) from m_type
+    </select>
+    <select id="findOneType" resultType="Type">
+        select * from m_type where id = #{id}
+    </select>
+    <select id="findAllType" resultType="Type">
+        select * from m_type
+    </select>
+
+
+</mapper>

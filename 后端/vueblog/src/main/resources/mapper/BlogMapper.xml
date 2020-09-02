@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="world.lixiang.dao.BlogDao">
+
+    <resultMap id="BlogMap" type="Blog">
+        <id property="id" column="id"></id>
+        <result property="description" column="description"></result>
+        <result property="update_time" column="update_time"></result>
+        <result property="recommend" column="recommend"></result>
+        <result property="create_time" column="create_time"></result>
+        <result property="first_picture" column="first_picture"></result>
+        <result property="views" column="views"></result>
+        <result property="content" column="content"></result>
+        <result property="flag" column="flag"></result>
+        <association property="type" javaType="Type">
+                <id property="id" column="tid"></id>
+                <id property="name" column="type_name"></id>
+        </association>
+    </resultMap>
+
+    <insert id="insertBlog" parameterType="Blog" useGeneratedKeys="true" keyProperty="id">
+        insert into m_blog values
+         (#{id},#{description},#{content},#{create_time},#{update_time},#{flag},#{first_picture},#{views},#{type_id},#{user_id},#{recommend})
+    </insert>
+    <insert id="insertBlogTag">
+        insert into m_blog_tag values
+        <foreach collection="list" item="item"  index="index" separator=",">
+            (#{item.blog_id},#{item.tag_id})
+        </foreach>
+    </insert>
+    <update id="updateBlog" parameterType="Blog">
+            update m_blog set description = #{description}, content = #{content} ,flag=#{flag} ,type_id=#{type_id} ,recommend = #{recommend} , update_time = #{update_time}
+            where id = #{id}
+    </update>
+    <update id="updateViews">
+        update m_blog set views = #{views} where id = #{id}
+    </update>
+    <delete id="deleteBlog" parameterType="String">
+        delete from m_blog where id = #{id}
+    </delete>
+    <delete id="deleteBlogTag" parameterType="String">
+        delete from m_blog_tag where blog_id = #{id}
+    </delete>
+
+    <select id="findBlogs" resultMap="BlogMap">
+        SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,b.`create_time` create_time , b.`first_picture` first_picture , b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend
+         FROM m_blog b , m_type t
+        WHERE b.`type_id` = t.`id` LIMIT #{page} ,#{rows};
+    </select>
+    <select id="total" resultType="java.lang.Long">
+        select count(id) from m_blog
+    </select>
+    <select id="findWhereBlogs" resultMap="BlogMap"  parameterType="BlogType">
+        <if test="id == null">
+            SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
+            m_blog b , m_type t
+            WHERE b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') LIMIT #{page} ,#{rows};
+        </if>
+
+        <if test="description ==null">
+            SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
+            m_blog b , (SELECT * FROM m_type WHERE id = #{id}) t
+            WHERE b.`type_id` = t.`id`  LIMIT #{page} ,#{rows};
+        </if>
+
+        <if test="id != null and description !=null">
+            SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
+            m_blog b , (SELECT * FROM m_type WHERE id = #{id}) t
+            WHERE b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') LIMIT #{page} ,#{rows};
+        </if>
+
+    </select>
+    <select id="findWhereBlogsCount" resultMap="BlogMap"  parameterType="BlogType">
+        <if test="id == null">
+            SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
+            m_blog b , m_type t
+            WHERE b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') ;
+        </if>
+
+        <if test="description ==null">
+            SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
+            m_blog b , (SELECT * FROM m_type WHERE id = #{id}) t
+            WHERE b.`type_id` = t.`id`  ;
+        </if>
+
+        <if test="id != null and description !=null">
+            SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
+            m_blog b , (SELECT * FROM m_type WHERE id = #{id}) t
+            WHERE b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') ;
+        </if>
+    </select>
+    <select id="selectOneBlog" resultType="Blog" parameterType="String">
+            SELECT b.id , b.`description`  , b.`content`  , b .`flag`  , b.`first_picture`, b.`type_id` ,b.`recommend`
+            FROM m_type t INNER JOIN m_blog b ON t.`id` = b.`type_id`
+            WHERE b.`id` = #{id};
+    </select>
+    <select id="selectTag" resultType="Tag" >
+            SELECT t.`id` , t.`name`
+            FROM m_tag t INNER JOIN m_blog_tag bt ON t.`id` = bt.`tag_id` INNER JOIN m_blog b ON b.`id` = bt.`blog_id`
+             WHERE b.id = #{id};
+    </select>
+    <select id="selectAllType" resultMap="BlogMap">
+       SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,b.`create_time` create_time , b.`first_picture` first_picture ,
+        b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend
+         FROM m_blog b INNER JOIN m_type t ON b.`type_id` = t.`id` WHERE t.`id` = #{id} LIMIT #{page} , #{rows};
+    </select>
+    <select id="selectAllTotal" resultType="java.lang.Long" parameterType="String">
+        select count(t.id) FROM m_blog b INNER JOIN m_type t ON b.`type_id` = t.`id` WHERE t.`id` = #{id}
+    </select>
+    <select id="selectAllTag" resultMap="BlogMap">
+        SELECT  b.`id` id , b.`description` description ,b.`update_time` update_time ,b.`create_time` create_time , b.`first_picture` first_picture ,
+        b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend
+         FROM m_tag m INNER JOIN m_blog_tag bt ON m.`id` = bt.`tag_id` INNER JOIN m_blog b ON b.`id` = bt.`blog_id` INNER JOIN m_type t ON b.`type_id` = t.id
+         WHERE m.`id` = #{id} LIMIT #{page} , #{rows};
+    </select>
+    <select id="selectAllTags" resultType="java.lang.Long">
+        select count(m.id) FROM m_tag m INNER JOIN m_blog_tag bt ON m.`id` = bt.`tag_id` INNER JOIN m_blog b ON b.`id` = bt.`blog_id` INNER JOIN m_type t ON b.`type_id` = t.id
+         WHERE m.`id` = #{id};
+    </select>
+    <select id="findOneBlog" resultMap="BlogMap" parameterType="String">
+            SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,
+	b.`create_time` create_time , b.`first_picture` first_picture , b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend,
+	b.`content` content, b.`flag` flag
+         FROM m_blog b , m_type t
+        WHERE b.`type_id` = t.`id` AND b.`id` = #{id};
+    </select>
+    <select id="findOneRecommend" resultType="Blog">
+                 SELECT * FROM m_blog WHERE recommend = TRUE limit 0 , 3;
+    </select>
+</mapper>

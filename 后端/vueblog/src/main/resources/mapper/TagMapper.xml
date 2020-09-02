@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="world.lixiang.dao.TagDao">
+    <insert id="addTag" parameterType="Tag" useGeneratedKeys="true" keyProperty="id">
+        insert into m_tag values (#{id},#{name})
+    </insert>
+    <update id="updateTag" parameterType="Tag">
+        update m_tag set name = #{name} where id = #{id}
+    </update>
+    <delete id="deleteTag" parameterType="Integer">
+        delete from m_tag where id = #{id}
+    </delete>
+    <select id="findPageTag" resultType="Tag">
+        select * from m_tag limit #{page}, #{rows}
+    </select>
+    <select id="total" resultType="java.lang.Long">
+        select count(id) from m_tag
+    </select>
+    <select id="findOneTag" resultType="Tag">
+        select * from m_tag where id = #{id}
+    </select>
+    <select id="findAllTag" resultType="Tag">
+        select * from m_tag
+    </select>
+</mapper>
