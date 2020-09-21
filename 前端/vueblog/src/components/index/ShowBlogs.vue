@@ -15,7 +15,7 @@
                         <router-link style="color: #333 " :to="'/index/'+blog.id" target="_blank">  <h3>{{blog.description}}</h3></router-link>
                         <br/>
                         <br/>
-                        <span style="font-size: 0.3rem; padding: 5px">作者：李 想</span>
+                        <span style="font-size: 0.3rem; padding: 5px">作者：{{blog.username}}</span>
                         <span style="font-size: 0.3rem; padding: 5px"><i class="el-icon-date" ></i>{{blog.create_time}} </span>
                         <span style="font-size: 0.3rem; padding: 5px"><i class="el-icon-view" ></i>{{blog.views}} </span>
                         <br/>
@@ -128,9 +128,11 @@
       findPageBlogs(page, rows){
         page = page ? page : this.page;
         rows = rows ? rows : this.rows;
-        this.$http.get("http://localhost:8989/blog/findPageBlog?page=" + page +"&rows=" + rows).then(res=>{
+        this.$http.get("http://39.106.86.151:8989/show/findAllBlog?page=" + page +"&rows=" + rows).then(res=>{
           this.blogs = res.data.blogs;
+          console.log(this.blogs);
           this.total = res.data.total;
+          console.log(this.total);
         })
       },
       findSize(size) { //用来处理每页显示记录发生变化的方法
@@ -142,13 +144,13 @@
           this.findPageBlogs(page,this.rows);
       },
       findAllType(){
-        this.$http.get("http://localhost:8989/type/findAllType").then(res=>{
+        this.$http.get("http://39.106.86.151:8989/type/findAllType").then(res=>{
           this.types = res.data;
           console.log(this.types)
         })
       },
       listTag(){
-        this.$http.get("http://localhost:8989/tag/findAllTag").then(res=>{
+        this.$http.get("http://39.106.86.151:8989/tag/findAllTag").then(res=>{
           this.tags = res.data;
 
         })

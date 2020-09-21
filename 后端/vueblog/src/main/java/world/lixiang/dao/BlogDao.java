@@ -9,7 +9,7 @@ import world.lixiang.entity.Tag;
 import java.util.List;
 
 public interface BlogDao {
-        List<Blog> findBlogs(@Param("page") Integer page ,@Param("rows") Integer rows);
+        List<Blog> findBlogs(@Param("page") Integer page ,@Param("rows") Integer rows, @Param("id") String id);
 
         Long total();
 
@@ -44,4 +44,10 @@ public interface BlogDao {
         List<Blog> findOneRecommend();
 
         void updateViews(@Param("views") Integer views, @Param("id")Integer id);
+
+        List<Blog> findAllPage(@Param("page") Integer page ,@Param("rows") Integer rows);
+
+        Long countBlogs();
+
+        Long findBlogsCount(String id);
 }

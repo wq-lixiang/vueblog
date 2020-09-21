@@ -9,7 +9,7 @@ import world.lixiang.entity.Tag;
 import java.util.List;
 
 public interface BlogService {
-    List<Blog> findBlogs(Integer page ,Integer rows);
+    List<Blog> findBlogs(Integer page ,Integer rows , String id);
 
     Long total();
 
@@ -45,4 +45,10 @@ public interface BlogService {
     List<Blog> findOneRecommend();
 
     void updateViews( Integer views, Integer id);
+
+    List<Blog> findAllPage(Integer page , Integer rows);
+
+    Long countBlogs();
+
+    Long findBlogsCount(String id);
 }

@@ -96,6 +96,7 @@
 
 
 <script>
+  import Cookies from 'js-cookie'
     export default {
         name:'Types',
         data(){
@@ -120,19 +121,23 @@
         },
         methods:{
           handleDelete(index,row) {
-              this.$http.get("http://localhost:8989/type/deleteType?id=" + row.id).then(res =>{
+              this.$http.get("http://39.106.86.151:8989/type/deleteType?id=" + row.id , {
+                headers: { 'token': Cookies.get('token'),}
+              }).then(res =>{
+
                 if(res.data.code == 200){
                   this.$message.success(res.data.msg);
                   this.page= 1;
                   this.findPageTypes();
                 }else{
-                  this.$message.error(res.date.msg);
+                  console.log(res.data)
+                  this.$message.error(res.data.msg);
                 }
               })
 
           },
           handleEdit(index, row){
-            this.$http.get("http://localhost:8989/type/findOneType?id="+row.id).then(res =>{
+            this.$http.get("http://39.106.86.151:8989/type/findOneType?id="+row.id).then(res =>{
                   this.form=res.data.object;
                   this.dialogForm=true;
             })
@@ -148,7 +153,7 @@
           dialogFormVisible(userform){
             this.$refs['userForm'].validate((valid) => {
               if (valid) {
-                this.$http.post("http://localhost:8989/type/addType" , this.form).then(res =>{
+                this.$http.post("http://39.106.86.151:8989/type/addType" , this.form).then(res =>{
 
                       if(res.data.code == 200){
                           this.$message.success(res.data.msg);
@@ -169,7 +174,7 @@
           findPageTypes(page , rows){
             page = page ? page : this.page;
             rows = rows ? rows : this.rows;
-            this.$http.get("http://localhost:8989/type/findPageType?page=" + page + '&rows='+ rows).then(res =>{
+            this.$http.get("http://39.106.86.151:8989/type/findPageType?page=" + page + '&rows='+ rows).then(res =>{
                 this.tableData =  res.data.types;
                 this.total = res.data.total;
             })
@@ -183,7 +188,12 @@
           }
         },
         created(){
-          this.findPageTypes();
+          if(Cookies.get('token')) {
+            this.findPageTypes();
+          }else{
+            this.$message.error('未登录');
+            this.$router.push('/login')
+          }
         }
     }
 </script>

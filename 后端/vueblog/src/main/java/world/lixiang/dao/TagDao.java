@@ -2,7 +2,6 @@ package world.lixiang.dao;
 
 import org.apache.ibatis.annotations.Param;
 import world.lixiang.entity.Tag;
-import world.lixiang.entity.Type;
 
 import java.util.List;
 

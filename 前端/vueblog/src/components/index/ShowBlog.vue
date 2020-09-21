@@ -1,7 +1,7 @@
 <template>
     <div id="showBlog">
       <el-card class="box-card">
-          <span style="font-size: 0.3rem; padding: 5px">作者：李 想</span>
+          <span style="font-size: 0.3rem; padding: 5px">作者：{{blogs.username}}</span>
           <span style="font-size: 0.3rem; padding: 5px"><i class="el-icon-date" ></i>{{blogs.update_time}} </span>
           <span style="font-size: 0.3rem; padding: 5px"><i class="el-icon-view" ></i>{{blogs.views}} </span>
       </el-card>
@@ -20,8 +20,7 @@
             <br/>
             <br/>
             <br/>
-          <div v-html="blogs.content">
-          </div>
+        <div class="content markdown-body" v-html="blogs.content"></div>
           <br/>
           <br/>
           <div>
@@ -33,6 +32,8 @@
 
 
 <script>
+  import "mavon-editor/dist/css/index.css"
+  import 'github-markdown-css/github-markdown.css' // 然后添加样式markdown-body
     export default {
       name:'ShowBlog',
       data(){
@@ -42,7 +43,16 @@
       },
       methods:{
           selectoneBlog(){
-              this.$http.get("http://localhost:8989/show/selectOneBlog?id=" + this.$route.params.id).then(res=>{
+            const _this = this
+              this.$http.get("http://39.106.86.151:8989/show/selectOneBlog?id=" + this.$route.params.id).then(res=>{
+
+                _this.blog = res.data
+                var MarkdownIt = require('markdown-it'),
+                  md = new MarkdownIt();
+                var result = md.render(_this.blog.content);
+                _this.blog.content = result
+
+
                 this.blogs =  res.data
                 console.log(this.blogs)
               })

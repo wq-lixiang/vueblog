@@ -6,7 +6,9 @@ import world.lixiang.entity.Blog;
 import world.lixiang.entity.Tag;
 import world.lixiang.service.BlogService;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @CrossOrigin
@@ -30,5 +32,18 @@ public class ShowController {
     public List<Blog> selectOne(){
         List<Blog> oneRecommend = blogService.findOneRecommend();
         return oneRecommend;
+    }
+
+    @GetMapping("findAllBlog")
+    public Map<String , Object> findAllBlog(Integer page , Integer rows){
+        page = page == null ? 1 : page;
+        rows = rows == null ? 3 : rows;
+        Map<String , Object> map = new HashMap<>();
+        List<Blog> blogs =  blogService.findAllPage(page , rows);
+        Long total =  blogService.countBlogs();
+        map.put("blogs" , blogs);
+        map.put("total", total);
+
+        return map;
     }
 }

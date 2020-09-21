@@ -1,6 +1,7 @@
 package world.lixiang.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 import world.lixiang.dao.TypeDao;
@@ -49,6 +50,7 @@ public class TypeServiceImpl implements TypeService {
     }
 
     @Override
+    @Cacheable(value = "index", key = "'findAllType'")
     public List<Type> findAllType() {
         return typeDao.findAllType();
     }

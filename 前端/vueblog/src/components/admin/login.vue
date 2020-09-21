@@ -9,8 +9,9 @@
       <el-form-item label="密码：" prop="password">
         <el-input style="width: 300px;" type="password" v-model="form.password" placeholder="请输入密码" prefixIcon="el-icon-key"></el-input>
       </el-form-item>
-      <el-form-item style="padding-left:40px; padding-top: 10px ">
-        <el-button type="primary" @click="onSubmit('userForm')">登录</el-button>
+      <el-form-item style="padding-left:10px; padding-top: 10px ">
+        <el-button :disabled="disabled" type="primary" @click="onSubmit('userForm')">登录</el-button>
+        <el-button type="warning" @click="regist()">注册</el-button>
         <el-button @click="reset()">重置</el-button>
       </el-form-item>
     </el-form>
@@ -23,6 +24,7 @@
     name:'Login',
     data() {
       return {
+        disabled:false,
         form: {
          username:'',
           password:''
@@ -43,11 +45,13 @@
         this.$refs['userForm'].validate((valid) => {
           if (valid) {
             console.log(this.form);
-            this.$http.post("http://localhost:8989/user/findUser", this.form).then(res =>{
+            this.$http.post("http://39.106.86.151:8989/user/findUser", this.form).then(res =>{
                   console.log(res.data);
                   if(res.data.code == 200){
+                    this.disabled = true;
                     this.$message.success(res.data.msg);
-                    this.$router.push("/admin");
+                    console.log(res.data)
+                    this.$router.push("/admin?token=" + res.data.object);
                   }else{
                     this.$message.error(res.data.msg);
                     this.form = {username: this.form.username}
@@ -60,6 +64,9 @@
       },
       reset(){
         this.form = {};
+      },
+      regist(){
+        this.$router.push('/register')
       }
     }
   }

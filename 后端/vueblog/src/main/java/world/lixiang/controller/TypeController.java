@@ -4,8 +4,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import world.lixiang.entity.Type;
 import world.lixiang.service.TypeService;
+import world.lixiang.utils.JwtInfo;
+import world.lixiang.utils.JwtUtils;
 import world.lixiang.vo.Result;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,20 +54,26 @@ public class TypeController {
     }
 
     @GetMapping("deleteType")
-    public Result deleteType(Integer id){
+    public Result deleteType(Integer id , HttpServletRequest request){
         Result result = new Result();
         try{
+            JwtInfo jwtInfo = JwtUtils.getMemberIdByJwtToken(request);
+            String id1 = jwtInfo.getId();
+            if(!id1.equals("1")){
+                result = result.error("权限不够");;
+               return result;
+            }
             typeService.deleteType(id);
             result = result.success("删除成功");
-        }catch (Exception e){
-            result = result.error("删除失败");
+        }catch (RuntimeException e){
             e.printStackTrace();
         }
         return  result;
     }
 
     @GetMapping("findOneType")
-    public Result findOneType(Integer id){
+    public Result findOneType(Integer id ){
+
         Result result = new Result();
         Type oneType = typeService.findOneType(id);
         result =  result.success("查询成功",oneType);

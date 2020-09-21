@@ -1,6 +1,7 @@
 package world.lixiang.service.impl;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import world.lixiang.dao.TagDao;
 import world.lixiang.entity.Tag;
@@ -48,6 +49,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @Cacheable(value = "index", key = "'findAllTag'")
     public List<Tag> findAllTag() {
         return tagDao.findAllTag();
     }

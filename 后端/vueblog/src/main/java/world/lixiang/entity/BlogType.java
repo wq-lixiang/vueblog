@@ -13,5 +13,6 @@ public class BlogType {
     private Integer page;
     private Integer rows;
     private String description;
+    private String jwtId;
     private String id;
 }

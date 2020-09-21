@@ -28,7 +28,9 @@ public class Blog {
     private Integer type_id;
     private Integer user_id;
     private Boolean recommend;
+    private String username;
 
+    private String jwtId;
 
     private Type type;
     private List<Integer> tags;

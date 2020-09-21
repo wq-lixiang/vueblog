@@ -11,6 +11,7 @@ import ShowBlogs from '../components/index/ShowBlogs.vue'
 import TypesBlogs from '../components/index/TypesBlogs.vue'
 import TagsBlogs from '../components/index/TagsBlogs.vue'
 import ShowBlog from '../components/index/ShowBlog.vue'
+import Regit from '../components/admin/register.vue'
 
 Vue.use(Router);
 
@@ -27,6 +28,9 @@ export default new Router({
     ]},
     {
       path:'/login',component : Login,
+    },
+    {
+      path:'/register',component : Regit,
     },
     {
       path:'/admin',component:Admin ,children:[

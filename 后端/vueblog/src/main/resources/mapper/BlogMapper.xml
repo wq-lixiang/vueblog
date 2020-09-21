@@ -12,6 +12,7 @@
         <result property="views" column="views"></result>
         <result property="content" column="content"></result>
         <result property="flag" column="flag"></result>
+        <result property="username" column="username"></result>
         <association property="type" javaType="Type">
                 <id property="id" column="tid"></id>
                 <id property="name" column="type_name"></id>
@@ -45,8 +46,9 @@
     <select id="findBlogs" resultMap="BlogMap">
         SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,b.`create_time` create_time , b.`first_picture` first_picture , b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend
          FROM m_blog b , m_type t
-        WHERE b.`type_id` = t.`id` LIMIT #{page} ,#{rows};
+        WHERE b.`type_id` = t.`id` and user_id = #{id} LIMIT #{page} ,#{rows};
     </select>
+
     <select id="total" resultType="java.lang.Long">
         select count(id) from m_blog
     </select>
@@ -54,19 +56,19 @@
         <if test="id == null">
             SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
             m_blog b , m_type t
-            WHERE b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') LIMIT #{page} ,#{rows};
+            WHERE b.user_id = #{jwtId} and b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') LIMIT #{page} ,#{rows};
         </if>
 
         <if test="description ==null">
             SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
             m_blog b , (SELECT * FROM m_type WHERE id = #{id}) t
-            WHERE b.`type_id` = t.`id`  LIMIT #{page} ,#{rows};
+            WHERE b.user_id = #{jwtId} and b.`type_id` = t.`id`  LIMIT #{page} ,#{rows};
         </if>
 
         <if test="id != null and description !=null">
             SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
             m_blog b , (SELECT * FROM m_type WHERE id = #{id}) t
-            WHERE b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') LIMIT #{page} ,#{rows};
+            WHERE b.user_id = #{jwtId} and  b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') LIMIT #{page} ,#{rows};
         </if>
 
     </select>
@@ -74,19 +76,19 @@
         <if test="id == null">
             SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
             m_blog b , m_type t
-            WHERE b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') ;
+            WHERE b.user_id = #{jwtId} and  b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') ;
         </if>
 
         <if test="description ==null">
             SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
             m_blog b , (SELECT * FROM m_type WHERE id = #{id}) t
-            WHERE b.`type_id` = t.`id`  ;
+            WHERE b.user_id = #{jwtId} and b.`type_id` = t.`id`  ;
         </if>
 
         <if test="id != null and description !=null">
             SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend FROM
             m_blog b , (SELECT * FROM m_type WHERE id = #{id}) t
-            WHERE b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') ;
+            WHERE b.user_id = #{jwtId} and b.`type_id` = t.`id` AND  b.`description` LIKE concat('%',#{description},'%') ;
         </if>
     </select>
     <select id="selectOneBlog" resultType="Blog" parameterType="String">
@@ -101,16 +103,19 @@
     </select>
     <select id="selectAllType" resultMap="BlogMap">
        SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,b.`create_time` create_time , b.`first_picture` first_picture ,
-        b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend
-         FROM m_blog b INNER JOIN m_type t ON b.`type_id` = t.`id` WHERE t.`id` = #{id} LIMIT #{page} , #{rows};
+        b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend , u.username `username`
+         FROM m_blog b INNER JOIN m_type t ON b.`type_id` = t.`id`
+          inner join m_users u on b.user_id = u.id
+         WHERE t.`id` = #{id} LIMIT #{page} , #{rows};
     </select>
     <select id="selectAllTotal" resultType="java.lang.Long" parameterType="String">
         select count(t.id) FROM m_blog b INNER JOIN m_type t ON b.`type_id` = t.`id` WHERE t.`id` = #{id}
     </select>
     <select id="selectAllTag" resultMap="BlogMap">
         SELECT  b.`id` id , b.`description` description ,b.`update_time` update_time ,b.`create_time` create_time , b.`first_picture` first_picture ,
-        b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend
+        b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend , u.username `username`
          FROM m_tag m INNER JOIN m_blog_tag bt ON m.`id` = bt.`tag_id` INNER JOIN m_blog b ON b.`id` = bt.`blog_id` INNER JOIN m_type t ON b.`type_id` = t.id
+         inner join m_users u on b.user_id = u.id
          WHERE m.`id` = #{id} LIMIT #{page} , #{rows};
     </select>
     <select id="selectAllTags" resultType="java.lang.Long">
@@ -120,11 +125,26 @@
     <select id="findOneBlog" resultMap="BlogMap" parameterType="String">
             SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,
 	b.`create_time` create_time , b.`first_picture` first_picture , b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend,
-	b.`content` content, b.`flag` flag
-         FROM m_blog b , m_type t
-        WHERE b.`type_id` = t.`id` AND b.`id` = #{id};
+	b.`content` content, b.`flag` flag, u.username `username`
+         FROM m_blog b , m_type t, m_users u
+        WHERE b.`type_id` = t.`id` and b.user_id = u.id AND b.`id` = #{id};
     </select>
     <select id="findOneRecommend" resultType="Blog">
                  SELECT * FROM m_blog WHERE recommend = TRUE limit 0 , 3;
+    </select>
+    <select id="findAllPage" resultMap="BlogMap">
+                 SELECT b.`id` id , b.`description` description ,b.`update_time` update_time ,b.`create_time` create_time ,
+  b.`first_picture` first_picture , b.`views` views,t.`name` type_name ,t.`id` tid ,b.`recommend` recommend,
+  u.`username` username
+         FROM m_blog b , m_type t , m_users u
+        WHERE b.`type_id` = t.`id` AND b.`user_id` = u.`id` LIMIT #{page} ,#{rows};
+    </select>
+    <select id="countBlogs" resultType="java.lang.Long">
+        select count(b.id) from m_blog b , m_type t , m_users u
+        WHERE b.`type_id` = t.`id` AND b.`user_id` = u.`id`
+    </select>
+    <select id="findBlogsCount" resultType="java.lang.Long" parameterType="String">
+        select count(b.id)
+         from m_blog b , m_users u where b.user_id = u.id and u.id = #{id}
     </select>
 </mapper>

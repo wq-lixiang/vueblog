@@ -1,48 +1,92 @@
 package world.lixiang.utils;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTCreator;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.DecodedJWT;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import org.joda.time.DateTime;
+import org.springframework.util.StringUtils;
 
-import java.util.Calendar;
-import java.util.Map;
+import javax.crypto.spec.SecretKeySpec;
+import javax.servlet.http.HttpServletRequest;
+import javax.xml.bind.DatatypeConverter;
+import java.security.Key;
+import java.util.Date;
 
-public class JWTUtils {
-    private static final String TOKEN  = "sadnaidhwaoldjhopdjwopda";
+/**
+ * @author helen
+ * @since 2019/10/16
+ */
+public class JwtUtils {
+
+    public static final String APP_SECRET = "ukc8BDbRigUDaY6pZFfWus2jZWLPHO";
+
+    private static Key getKeyInstance(){
+        SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
+        byte[] bytes = DatatypeConverter.parseBase64Binary(APP_SECRET);
+        return new SecretKeySpec(bytes,signatureAlgorithm.getJcaName());
+    }
+
+    public static String getJwtToken(JwtInfo jwtInfo, int expire){
+
+        String JwtToken = Jwts.builder()
+                .setHeaderParam("typ", "JWT")
+                .setHeaderParam("alg", "HS256")
+                .setSubject("guli-user")//主题
+                .setIssuedAt(new Date())//颁发时间
+                .setExpiration(DateTime.now().plusSeconds(expire).toDate())//过期时间
+                .claim("id", jwtInfo.getId())//用户id
+                .claim("nickname", jwtInfo.getNickname())//用户昵称
+                .signWith(SignatureAlgorithm.HS256, getKeyInstance())
+                .compact();
+
+        return JwtToken;
+    }
 
     /**
-     * 生成token
-     * @param map
+     * 判断token是否存在与有效
+     * @param jwtToken
      * @return
      */
-    public static String getToken(Map<String , Object> map){
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE,7);  //默认设置过期时间是7天
-
-        //创建JWT builder
-        JWTCreator.Builder builder =  JWT.create();
-        //payload
-        map.forEach((k,v)->{
-            builder.withClaim(k, (Boolean) v);
-        });
-        String sing =  builder.withExpiresAt(calendar.getTime()).sign(Algorithm.HMAC256(TOKEN));
-        return sing;
+    public static boolean checkJwtTToken(String jwtToken) {
+        if(StringUtils.isEmpty(jwtToken)) return false;
+        try {
+            Jwts.parser().setSigningKey(getKeyInstance()).parseClaimsJws(jwtToken);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     /**
-     * 验证token 合法性
+     * 判断token是否存在与有效
+     * @param request
+     * @return
      */
-    public static void verify(String token){
-        JWT.require(Algorithm.HMAC256(TOKEN)).build().verify(token);
+    public static boolean checkJwtTToken(HttpServletRequest request) {
+        try {
+            String jwtToken = request.getHeader("token");
+            if(StringUtils.isEmpty(jwtToken)) return false;
+            Jwts.parser().setSigningKey(getKeyInstance()).parseClaimsJws(jwtToken);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 
     /**
-     * 获取token信息的方法
+     * 根据token获取会员id
+     * @param request
+     * @return
      */
-
-    public static DecodedJWT getTokenInfo(String token){
-        DecodedJWT verify = JWT.require(Algorithm.HMAC256(TOKEN)).build().verify(token);
-        return verify;
+    public static JwtInfo getMemberIdByJwtToken(HttpServletRequest request) {
+        String jwtToken = request.getHeader("token");
+        if(StringUtils.isEmpty(jwtToken)) return null;
+        Jws<Claims> claimsJws = Jwts.parser().setSigningKey(getKeyInstance()).parseClaimsJws(jwtToken);
+        Claims claims = claimsJws.getBody();
+        JwtInfo jwtInfo = new JwtInfo(claims.get("id").toString(), claims.get("nickname").toString());
+        return jwtInfo;
     }
 }

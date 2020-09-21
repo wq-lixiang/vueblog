@@ -6,11 +6,22 @@ spring:
   datasource:
     type: com.alibaba.druid.pool.DruidDataSource
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://39.106.86.151:3306/vueblog?characterEncoding=utf-8
-    username: root
-    password: root
+    url: jdbc:mysql://localhost:3306/vueblog?characterEncoding=utf-8
+    username: 自己的用户名
+    password: 自己的密码
   resources:
     static-locations: classpath:/static
+  redis:
+    host: redisip
+    port: 6379
+    password: 自己的密码
+    database: 0
+    lettuce:
+      pool:
+        max-active: 20  #最大连接数，负值表示没有限制，默认8
+        max-wait: -1    #最大阻塞等待时间，负值表示没限制，默认-1
+        max-idle: 8     #最大空闲连接，默认8
+        min-idle: 0     #最小空闲连接，默认0
 
 
 
@@ -22,3 +33,12 @@ logging:
     world:
       lixiang:
         dao: debug
+
+aliyun:
+  oss:
+    endpoint: oss-cn-beijing.aliyuncs.com
+    keyid: 阿里云自己的keyid
+    keysecret: 阿里云自己的keysecret: 
+    #bucket可以在控制台创建，也可以使用java代码创建，注意先测试bucket是否已被占用
+    bucketname: wuqing-zero
+

@@ -5,6 +5,10 @@
     <br>
     <br>
     <br>
+    <div style="box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04); height: 40px; line-height: 40px; padding-top: 20px; padding-left: 40px; background-color: white">
+      <span style="color: #00B5AD; float: left;width:200px ; height: 40px; line-height: 40px; text-align: center; font-size: 1.5em; ">当前用户是:{{jwtInfo.nickname}}</span>
+      <el-button style="float: right" type="info" @click="layout()" icon="el-icon-delete">退出当前登录</el-button>
+    </div>
       <div style="box-shadow: 0 2px 4px rgba(0, 0, 0, .12), 0 0 6px rgba(0, 0, 0, .04); padding-top: 20px; padding-left: 40px; background-color: white">
         <el-form :inline="true" :model="formInline" class="demo-form-inline">
           <el-form-item >
@@ -18,9 +22,11 @@
           <el-form-item>
             <el-button type="primary" @click="onSubmit" icon="el-icon-search">查询</el-button>
             <el-button type="info" @click="clears()" icon="el-icon-delete">清空</el-button>
+
           </el-form-item>
         </el-form>
       </div>
+
     <br/>
     <br/>
       <div class="blogss">
@@ -119,6 +125,9 @@
 <script>
   import ElCard from "../../../node_modules/element-ui/packages/card/src/main.vue";
   import ElCol from "element-ui/packages/col/src/col";
+  import Cookies from 'js-cookie'
+
+
 
   export default {
     components: {
@@ -129,6 +138,7 @@
        return {
          formInline: {
            description: '',
+           jwtId:'',
            id: '',
            page : 1,
            rows : 3
@@ -138,12 +148,34 @@
          page:1,
          rows:3,
          total:0,
-         type:[]
+         type:[],
+         jwtInfo:{
+           id:''
+         }
        }
        },
+    mounted() {
+      if(Cookies.get('token')){
+        this.getUserInfo();
+        this.findPageBlogs();
+        this.findAllType();
+      }else{
+        this.$message.error('未登录');
+        this.$router.push('/login')
+      }
+
+    },
+  created(){
+    const token = this.$route.query.token;
+    // 将jwt写入cookie
+    if(token){
+      Cookies.set('token', token);
+      window.location.href = '#/admin/blogs'
+    }
+  },
     methods:{
       handleDelete(index,row) {
-        this.$http.get("http://localhost:8989/blog/deleteBlog?id=" + row.id).then(res=>{
+        this.$http.get("http://39.106.86.151:8989/blog/deleteBlog?id=" + row.id).then(res=>{
               if(res.data.code == 200){
                 this.$message.success(res.data.msg);
                 this.page= 1;
@@ -177,12 +209,13 @@
 
       },
       onSubmit(){
+         this.formInline.jwtId = this.jwtInfo.id
         if(this.formInline.description ==''&& this.formInline.id == ''){
           this.wheres = true;
             this.findPageBlogs();
         }else{
           this.wheres = false;
-          this.$http.post("http://localhost:8989/blog/findWhereBlog" ,this.formInline).then(res=>{
+          this.$http.post("http://39.106.86.151:8989/blog/findWhereBlog" ,this.formInline).then(res=>{
             this.tableData = res.data.Blogs;
             this.total = res.data.total;
             console.log(this.tableData)
@@ -191,29 +224,50 @@
 
       },
       findPageBlogs(page, rows){
+
         page = page ? page : this.page;
         rows = rows ? rows : this.rows;
-        this.$http.get("http://localhost:8989/blog/findPageBlog?page=" + page +"&rows=" + rows).then(res=>{
+        this.$http.get("http://39.106.86.151:8989/blog/findPageBlog?page=" + page +"&rows="+ rows,{
+          headers: { 'token': Cookies.get('token'),
+        }
+        }).then(res=>{
+
             this.tableData = res.data.blogs;
             this.total = res.data.total;
             console.log(this.tableData);
         })
       },
       findAllType(){
-        this.$http.get("http://localhost:8989/type/findAllType").then(res=>{
+        this.$http.get("http://39.106.86.151:8989/type/findAllType").then(res=>{
             this.type = res.data;
         })
       },
       clears(){
         this.formInline={page:1,rows:3 ,description:'',id:''};
+        this.findPageBlogs();
       },
       addBlog(){
         this.$router.push("/admin/blog_input");
+      },
+      getUserInfo(){
+        this.$http.get("http://39.106.86.151:8989/user/get-login-info" , {
+          headers: { 'token': Cookies.get('token'),
+            }
+        }).then(res=>{
+          if(res.data.code == 200){
+              this.jwtInfo = res.data.object;
+              console.log(this.jwtInfo)
+          }else{
+            this.$message.error('登录过期了');
+            Cookies.remove('token');
+            this.$router.push('/login')
+          }
+        })
+      },
+      layout(){
+        Cookies.remove('token')
+        this.$router.push('/login')
       }
-    },
-    created(){
-        this.findPageBlogs();
-        this.findAllType();
     }
   }
 </script>

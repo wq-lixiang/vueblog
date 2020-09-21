@@ -1,25 +1,21 @@
 package world.lixiang.controller;
 
-import org.apache.commons.io.FilenameUtils;
-import org.omg.PortableInterceptor.INACTIVE;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
-import world.lixiang.dao.BlogDao;
+import org.springframework.web.servlet.HandlerInterceptor;
 import world.lixiang.entity.Blog;
 import world.lixiang.entity.BlogTag;
 import world.lixiang.entity.BlogType;
 import world.lixiang.entity.Tag;
 import world.lixiang.service.BlogService;
-import world.lixiang.utils.OssUtils;
+import world.lixiang.service.FileService;
+import world.lixiang.utils.JwtInfo;
+import world.lixiang.utils.JwtUtils;
 import world.lixiang.vo.Result;
 
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 @RestController
@@ -30,21 +26,26 @@ public class BlogController {
     @Autowired
     private BlogService blogService;
 
+    @Autowired
+    private FileService fileService;
 
     @GetMapping("findPageBlog")
-    public Map<String,Object> findPageBlog(Integer page , Integer rows){
+    public Map<String,Object> findPageBlog(Integer page , Integer rows , HttpServletRequest request){
+        JwtInfo jwtInfo = JwtUtils.getMemberIdByJwtToken(request);
+        String id =  jwtInfo.getId();
         page = page == null ? 1 :page;
         rows = rows == null ? 3 :rows;
         Map<String ,Object> map = new HashMap<>();
-        List<Blog> blogs = blogService.findBlogs(page, rows);
-        Long total = blogService.total();
+        List<Blog> blogs = blogService.findBlogs(page, rows, id);
+        Long total =  blogService.findBlogsCount(id);
         map.put("blogs",blogs);
         map.put("total",total);
         return map;
     }
 
     @PostMapping("findWhereBlog")
-    public Map<String,Object> findWhereBlog(@RequestBody BlogType blogType){
+    public Map<String,Object> findWhereBlog(@RequestBody BlogType blogType ){
+        System.out.println(blogType);
         if(blogType.getId() == ""){
             blogType.setId(null);
         }
@@ -63,7 +64,12 @@ public class BlogController {
     @GetMapping("deleteBlog")
     public Result deleteBlog(String id){
             Result result = new Result();
-            try{
+        Blog blog = blogService.selectOneBlog(id);
+        String first_picture = blog.getFirst_picture();
+        try{
+                if(!StringUtils.isEmpty(first_picture)){
+                    fileService.removeFile(first_picture);
+                }
                 blogService.deleteBlog(id);
                 blogService.deleteBlogTag(id);
                 result = result.success("删除成功");
@@ -76,18 +82,18 @@ public class BlogController {
 
     }
 
-    @RequestMapping("insertBlog")
-    public Result insertBlog(MultipartFile pic  , Blog blog) throws IOException {
+    @PostMapping("insertBlog")
+    public Result insertBlog(@RequestBody Blog blog ) throws IOException {
+        System.out.println(blog);
         Result result = new Result();
         try{
+                if(StringUtils.isEmpty(blog.getDescription()) || StringUtils.isEmpty(blog.getContent()) ||
+                    StringUtils.isEmpty(blog.getFirst_picture()) || StringUtils.isEmpty(blog.getType_id()) ||
+                    StringUtils.isEmpty(blog.getTags())){
+                    throw  new RuntimeException("信息没有填写完整");
+                }
+
                 if(blog.getId() == null){
-                    if(pic !=null){
-                        String extension = FilenameUtils.getExtension(pic.getOriginalFilename());
-                        String oldFileName =  pic.getOriginalFilename();
-                        String newFileName = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) +"."+ extension;
-                        String s = OssUtils.testUpload(oldFileName, newFileName);
-                        blog.setFirst_picture(s);
-                    }
                     blogService.insertBlog(blog);
                     Integer id = blog.getId();
                     List<Integer> tags = blog.getTags();
@@ -101,13 +107,6 @@ public class BlogController {
                     blogService.insertBlogTag(list);
                     result = result.success("添加成功");
                 }else{
-                    if(pic !=null){
-                        String extension = FilenameUtils.getExtension(pic.getOriginalFilename());
-                        String oldFileName =  pic.getOriginalFilename();
-                        String newFileName = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) +"."+ extension;
-                        String s = OssUtils.testUpload(oldFileName, newFileName);
-                        blog.setFirst_picture(s);
-                    }
                     blogService.updateBlog(blog);
                     blogService.deleteBlogTag(blog.getId().toString());
                     List<Integer> tags = blog.getTags();
@@ -123,9 +122,9 @@ public class BlogController {
                     result = result.success("修改成功");
                 }
 
-        }catch (Exception e){
+        }catch (RuntimeException e){
             e.printStackTrace();
-              result = result.error("添加失败");
+            result = result.error("信息没有填写完整");
         }
         return result;
     }

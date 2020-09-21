@@ -18,8 +18,6 @@
           <el-menu-item index="/admin/types" style="height: 70px; line-height: 70px ;width: 100px; text-align: center; font-size: 16px; ;" ><i class="el-icon-price-tag"></i>分类</el-menu-item>
         <el-menu-item index="/admin/tags" style="height: 70px; line-height: 70px ;width: 100px; text-align: center; font-size: 16px; "><i class="el-icon-collection-tag
 "></i>标签</el-menu-item>
-        <el-menu-item index="4" style="height: 70px; line-height: 70px ;width: 100px; text-align: center; font-size: 16px; float: right"><i class="el-icon-s-tools
-"></i>退出</el-menu-item>
       </el-menu>
        </el-col>
      </el-row>
@@ -84,9 +82,8 @@
         this.$router.push(key);
       },
       oneBlog(){
-        this.$http.get("http://localhost:8989/show/selectOne").then(res=>{
+        this.$http.get("http://39.106.86.151:8989/show/selectOne").then(res=>{
           this.blog =  res.data;
-          console.log(this.blog)
         })
       }
     },

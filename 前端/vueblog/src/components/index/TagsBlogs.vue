@@ -32,7 +32,7 @@
                   <router-link style="color: #333 " :to="'/index/'+blog.id" target="_blank">  <h3>{{blog.description}}</h3></router-link>
                   <br/>
                   <br/>
-                  <span style="font-size: 0.3rem; padding: 5px">作者：李 想</span>
+                  <span style="font-size: 0.3rem; padding: 5px">作者：{{blog.username}}</span>
                   <span style="font-size: 0.3rem; padding: 5px"><i class="el-icon-date" ></i>{{blog.create_time}} </span>
                   <span style="font-size: 0.3rem; padding: 5px"><i class="el-icon-view" ></i>{{blog.views}} </span>
                   <br/>
@@ -90,7 +90,7 @@
         selectAllTag(page , rows){
           page = page ? page : this.page;
           rows =rows ? rows : this.rows;
-          this.$http.get("http://localhost:8989/blog/selectAllTag?page=" + page +"&rows=" + rows + "&id=" + this.$route.params.id).then(res=>{
+          this.$http.get("http://39.106.86.151:8989/blog/selectAllTag?page=" + page +"&rows=" + rows + "&id=" + this.$route.params.id).then(res=>{
             this.blogs =  res.data.blogs;
             this.total  = res.data.total;
             console.log(this.blogs);
@@ -118,7 +118,7 @@
         findPageBlogs(page, rows){
           page = page ? page : this.page;
           rows = rows ? rows : this.rows;
-          this.$http.get("http://localhost:8989/blog/findPageBlog?page=" + page +"&rows=" + rows).then(res=>{
+          this.$http.get("http://39.106.86.151:8989/blog/findPageBlog?page=" + page +"&rows=" + rows).then(res=>{
             this.blogs = res.data.blogs;
             this.total = res.data.total;
           })

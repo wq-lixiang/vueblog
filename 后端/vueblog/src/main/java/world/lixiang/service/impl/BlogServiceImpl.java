@@ -1,5 +1,6 @@
 package world.lixiang.service.impl;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import world.lixiang.dao.BlogDao;
 import world.lixiang.entity.Blog;
@@ -19,9 +20,9 @@ public class BlogServiceImpl implements BlogService {
     private BlogDao blogDao;
 
     @Override
-    public List<Blog> findBlogs(Integer page, Integer rows) {
+    public List<Blog> findBlogs(Integer page, Integer rows ,String id) {
         Integer start  = (page - 1) * rows;
-        return blogDao.findBlogs(start,rows);
+        return blogDao.findBlogs(start,rows,id);
     }
 
     @Override
@@ -54,7 +55,7 @@ public class BlogServiceImpl implements BlogService {
     public void insertBlog(Blog blog) {
         blog.setCreate_time(new Date());
         blog.setUpdate_time(new Date());
-        blog.setUser_id(1);
+        blog.setUser_id(Integer.parseInt(blog.getJwtId()));
         blog.setViews(0);
         blogDao.insertBlog(blog);
     }
@@ -116,6 +117,22 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public void updateViews(Integer views, Integer id) {
         blogDao.updateViews(views ,id);
+    }
+
+    @Override
+    public List<Blog> findAllPage(Integer page , Integer rows) {
+        Integer start = (page - 1) * rows;
+        return blogDao.findAllPage(start , rows);
+    }
+
+    @Override
+    public Long countBlogs() {
+        return blogDao.countBlogs();
+    }
+
+    @Override
+    public Long findBlogsCount(String id) {
+        return blogDao.findBlogsCount(id);
     }
 
 
